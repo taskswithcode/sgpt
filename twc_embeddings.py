@@ -3,6 +3,7 @@ from transformers import AutoModel, AutoTokenizer
 from scipy.spatial.distance import cosine
 import argparse
 import json
+import pdb
 
 def read_text(input_file):
     arr = open(input_file).read().split("\n")
@@ -13,21 +14,27 @@ class SGPTModel:
     def __init__(self):
         self.model = None
         self.tokenizer = None
+        self.debug = False
+        print("In SGPT Constructor")
 
 
-    def init_model(self):
+    def init_model(self,model_name = None):
         # Get our models - The package will take care of downloading the models automatically
         # For best performance: Muennighoff/SGPT-5.8B-weightedmean-nli-bitfit
-        #self.tokenizer = AutoTokenizer.from_pretrained("Muennighoff/SGPT-125M-weightedmean-nli-bitfit")
-        #self.model = AutoModel.from_pretrained("Muennighoff/SGPT-125M-weightedmean-nli-bitfit")
-        self.tokenizer = AutoTokenizer.from_pretrained("Muennighoff/SGPT-1.3B-weightedmean-msmarco-specb-bitfit")
-        self.model = AutoModel.from_pretrained("Muennighoff/SGPT-1.3B-weightedmean-msmarco-specb-bitfit")
+        print("Init model",model_name)
+        if (model_name is None):
+            model_name = "Muennighoff/SGPT-125M-weightedmean-nli-bitfit"
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+        #self.tokenizer = AutoTokenizer.from_pretrained("Muennighoff/SGPT-1.3B-weightedmean-msmarco-specb-bitfit")
+        #self.model = AutoModel.from_pretrained("Muennighoff/SGPT-1.3B-weightedmean-msmarco-specb-bitfit")
         #self.tokenizer = AutoTokenizer.from_pretrained("Muennighoff/SGPT-5.8B-weightedmean-msmarco-specb-bitfit")
         #self.model = AutoModel.from_pretrained("Muennighoff/SGPT-5.8B-weightedmean-msmarco-specb-bitfit")
         # Deactivate Dropout (There is no dropout in the above models so it makes no difference here but other SGPT models may have dropout)
         self.model.eval()
 
     def compute_embeddings(self,input_data,is_file):
+        print("Computing embeddings for:", input_data[:20])
         model = self.model
         tokenizer = self.tokenizer
 
@@ -75,11 +82,12 @@ class SGPTModel:
 
         print("Input sentence:",texts[0])
         sorted_dict = dict(sorted(cosine_dict.items(), key=lambda item: item[1],reverse = True))
-        for key in sorted_dict:
-            print("Cosine similarity with  \"%s\" is: %.3f" % (key, sorted_dict[key]))
+        if (self.debug):
+            for key in sorted_dict:
+                print("Cosine similarity with  \"%s\" is: %.3f" % (key, sorted_dict[key]))
         if (output_file is not None):
             with open(output_file,"w") as fp:
-                fp.write(json.dumps(sorted_dict))
+                fp.write(json.dumps(sorted_dict,indent=0))
         return sorted_dict
 
 
@@ -87,9 +95,11 @@ class SGPTModel:
 if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='SGPT model for sentence embeddings ',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         parser.add_argument('-input', action="store", dest="input",required=True,help="Input file with sentences")
-        parser.add_argument('-output', action="store", dest="output",default="output.json",help="Output file with results")
+        parser.add_argument('-output', action="store", dest="output",default="output.txt",help="Output file with results")
+        parser.add_argument('-model', action="store", dest="model",default="Muennighoff/SGPT-125M-weightedmean-nli-bitfit",help="model name")
+
         results = parser.parse_args()
         obj = SGPTModel()
-        obj.init_model()
+        obj.init_model(results.model)
         texts, embeddings = obj.compute_embeddings(results.input,is_file = True)
         results = obj.output_results(results.output,texts,embeddings)
