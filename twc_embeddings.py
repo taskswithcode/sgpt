@@ -21,7 +21,8 @@ class SGPTModel:
     def init_model(self,model_name = None):
         # Get our models - The package will take care of downloading the models automatically
         # For best performance: Muennighoff/SGPT-5.8B-weightedmean-nli-bitfit
-        print("Init model",model_name)
+        if (self.debug):
+            print("Init model",model_name)
         if (model_name is None):
             model_name = "Muennighoff/SGPT-125M-weightedmean-nli-bitfit"
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -34,7 +35,9 @@ class SGPTModel:
         self.model.eval()
 
     def compute_embeddings(self,input_data,is_file):
-        print("Computing embeddings for:", input_data[:20])
+        pdb.set_trace()
+        if (self.debug):
+            print("Computing embeddings for:", input_data[:20])
         model = self.model
         tokenizer = self.tokenizer
 
@@ -72,15 +75,17 @@ class SGPTModel:
         embeddings = sum_embeddings / sum_mask
         return texts,embeddings
 
-    def output_results(self,output_file,texts,embeddings):
+    def output_results(self,output_file,texts,embeddings,main_index = 0):
         # Calculate cosine similarities
         # Cosine similarities are in [-1, 1]. Higher means more similar
         cosine_dict = {}
-        print("Total sentences",len(texts))
+        if (self.debug):
+            print("Total sentences",len(texts))
         for i in range(len(texts)):
-                cosine_dict[texts[i]] = 1 - cosine(embeddings[0], embeddings[i])
+                cosine_dict[texts[i]] = 1 - cosine(embeddings[main_index], embeddings[i])
 
-        print("Input sentence:",texts[0])
+        if (self.debug):
+            print("Input sentence:",texts[main_index])
         sorted_dict = dict(sorted(cosine_dict.items(), key=lambda item: item[1],reverse = True))
         if (self.debug):
             for key in sorted_dict:
