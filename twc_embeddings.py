@@ -35,7 +35,6 @@ class SGPTModel:
         self.model.eval()
 
     def compute_embeddings(self,input_data,is_file):
-        pdb.set_trace()
         if (self.debug):
             print("Computing embeddings for:", input_data[:20])
         model = self.model
