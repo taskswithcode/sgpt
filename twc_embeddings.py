@@ -34,7 +34,7 @@ class SGPTModel:
         # Deactivate Dropout (There is no dropout in the above models so it makes no difference here but other SGPT models may have dropout)
         self.model.eval()
 
-    def compute_embeddings(self,input_data,is_file):
+    def compute_embeddings(self,input_file_name,input_data,is_file):
         if (self.debug):
             print("Computing embeddings for:", input_data[:20])
         model = self.model
@@ -105,5 +105,5 @@ if __name__ == '__main__':
         results = parser.parse_args()
         obj = SGPTModel()
         obj.init_model(results.model)
-        texts, embeddings = obj.compute_embeddings(results.input,is_file = True)
+        texts, embeddings = obj.compute_embeddings(results.input,results.input,is_file = True)
         results = obj.output_results(results.output,texts,embeddings)

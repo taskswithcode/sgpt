@@ -19,7 +19,7 @@ class SGPTQnAModel:
 
     def init_model(self,model_name = None):
         # Get our models - The package will take care of downloading the models automatically
-        # For best performance: Muennighoff/SGPT-5.8B-weightedmean-nli-bitfit
+        # For best performance: Muennighoff/SGPT-5.8B-weightedmean-msmarco-specb-bitfit
         if (self.debug):
             print("Init model",model_name)
         if (model_name is None):
